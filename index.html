@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>筑习 - 建筑规范智能考点与检索系统</title>
+    <title>筑习 - 建筑规范智能考点与检索系统（完整专业版）</title>
     <style>
         :root {
             --bg-color: #F2F2F7;
@@ -26,66 +26,75 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-group { display: flex; gap: 8px; margin-top: 12px; }
-        input[type="text"] { width: 100%; padding: 10px; border: 0.5px solid var(--separator); border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 10px; }
+        input[type="text"], select { width: 100%; padding: 10px; border: 0.5px solid var(--separator); border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 10px; background: #fff; }
         nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 0.5px solid var(--separator); display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
         .nav-item { text-align: center; font-size: 11px; color: var(--text-secondary); cursor: pointer; }
         .nav-item.active { color: var(--accent); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .stats-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
-        .list-item { padding: 10px 0; border-bottom: 0.5px solid var(--separator); font-size: 13px; }
+        .list-item { padding: 12px 0; border-bottom: 0.5px solid var(--separator); font-size: 13px; }
         .list-item:last-child { border-bottom: none; }
+        .badge { display: inline-block; padding: 2px 6px; font-size: 11px; background: #E5E5EA; border-radius: 4px; color: var(--text-secondary); margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-<header>筑习 · 规范智能系统</header>
+<header>筑习 · 规范全库智能系统</header>
 
 <div class="container">
-    <!-- TAB 1: 每日抽问 -->
+    <!-- TAB 1: 规范抽查 -->
     <div id="tab-quiz" class="tab-content active">
         <div class="card">
-            <h2>🏛️ 每日建筑规范考点抽查</h2>
+            <h2>🏛️ 建筑规范核心考点智能抽查</h2>
             <div class="stats-row">
                 <span id="statCorrect">正确: 0</span>
                 <span id="statWrong">错误: 0</span>
+                <span id="statTotal" style="color: var(--accent);">题库总量: 0</span>
             </div>
+            <select id="categorySelect" onchange="loadRandomQuestion()">
+                <option value="all">全库随机抽题（所有专业）</option>
+                <option value="防火与疏散">第一篇：建筑防火与安全疏散</option>
+                <option value="通用与尺寸">第二篇：民用建筑设计通用标准与尺寸</option>
+                <option value="无障碍专项">第三篇：无障碍工程通用规范</option>
+            </select>
             <div style="background: #F9F9FB; padding: 12px; border-radius: 8px; margin-bottom: 12px; border: 0.5px solid var(--separator);">
-                <p id="qTitle" style="font-weight: 600; font-size: 13px; margin-bottom: 4px;"></p>
-                <p id="qContent" style="font-size: 13px; margin-bottom: 12px;"></p>
+                <div id="qBadge" class="badge">分类</div>
+                <p id="qTitle" style="font-weight: 600; font-size: 14px; margin-bottom: 6px;"></p>
+                <p id="qContent" style="font-size: 13px; margin-bottom: 12px; line-height: 1.5;"></p>
                 <div id="qAnswerBox" style="display:none;">
-                    <p style="font-size: 13px; color: var(--success); margin-bottom: 8px;" id="qAnswerText"></p>
+                    <p style="font-size: 13px; color: var(--success); margin-bottom: 8px; line-height: 1.5;" id="qAnswerText"></p>
                 </div>
             </div>
             <div id="actionButtons" class="btn-group">
-                <button class="btn btn-secondary" onclick="toggleAnswer()">查看解析</button>
+                <button class="btn btn-secondary" style="flex:1;" onclick="toggleAnswer()">查看标准解析</button>
             </div>
             <div id="judgeButtons" class="btn-group" style="display:none; margin-top: 8px;">
-                <button class="btn btn-danger" onclick="recordResult(false)">❌ 没掌握（记入错题）</button>
-                <button class="btn btn-success" onclick="recordResult(true)">✔️ 已掌握</button>
+                <button class="btn btn-danger" style="flex:1;" onclick="recordResult(false)">❌ 没掌握（入错题本）</button>
+                <button class="btn btn-success" style="flex:1;" onclick="recordResult(true)">✔️ 已掌握</button>
             </div>
             <button class="btn" style="width: 100%; margin-top: 12px;" onclick="loadRandomQuestion()">下一题</button>
         </div>
     </div>
 
-    <!-- TAB 2: 规范查找 -->
+    <!-- TAB 2: 全文规范检索 -->
     <div id="tab-search" class="tab-content">
         <div class="card">
-            <h2>🔍 最新建筑规范智能查找</h2>
-            <input type="text" id="searchInput" placeholder="输入关键词（如：防火分区、无障碍、疏散...）" oninput="searchNorms()">
-            <div id="searchResult" style="max-height: 400px; overflow-y: auto;">
-                <p style="font-size: 13px; color: var(--text-secondary);">输入关键词检索中国国家最新规范标准...</p>
+            <h2>🔍 国家建筑规范条文智能检索</h2>
+            <input type="text" id="searchInput" placeholder="输入关键词（如：防火墙、坡道、疏散宽度、体形系数...）" oninput="searchNorms()">
+            <div id="searchResult" style="max-height: 450px; overflow-y: auto;">
+                <p style="font-size: 13px; color: var(--text-secondary);">输入关键词实时检索最新规范条文与核心指标...</p>
             </div>
         </div>
     </div>
 
-    <!-- TAB 3: 错题总结 -->
+    <!-- TAB 3: 错题本 -->
     <div id="tab-summary" class="tab-content">
         <div class="card">
-            <h2>📊 每日与每周错题回顾</h2>
-            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">这里集中了你标记未掌握的高频规范考点：</p>
-            <div id="wrongListContainer">
-                <p style="font-size: 13px; color: var(--text-secondary);">暂无错题记录，保持得很好！</p>
+            <h2>📊 错题攻坚与高频考点回顾</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">这里记录了你在练习中未顺利通过的规范条文：</p>
+            <div id="wrongListContainer" style="max-height: 400px; overflow-y: auto;">
+                <p style="font-size: 13px; color: var(--text-secondary);">暂无错题记录，规范掌握情况良好！</p>
             </div>
             <button class="btn btn-secondary" style="width: 100%; margin-top: 12px;" onclick="clearWrongList()">清空错题本</button>
         </div>
@@ -93,31 +102,51 @@
 </div>
 
 <nav>
-    <div class="nav-item active" onclick="switchTab('quiz', this)"><span>🏛️</span><br>抽问</div>
-    <div class="nav-item" onclick="switchTab('search', this)"><span>🔍</span><br>查找</div>
-    <div class="nav-item" onclick="switchTab('summary', this)"><span>📊</span><br>错题总结</div>
+    <div class="nav-item active" onclick="switchTab('quiz', this)"><span>🏛️</span><br>规范抽查</div>
+    <div class="nav-item" onclick="switchTab('search', this)"><span>🔍</span><br>条文检索</div>
+    <div class="nav-item" onclick="switchTab('summary', this)"><span>📊</span><br>错题本</div>
 </nav>
 
 <script>
+    // 完整扩充题库（涵盖各主要建筑规范核心条文）
     const questionBank = [
-        { id: 1, title: "《建筑设计防火规范》 GB 50016", content: "高层民用建筑内防火分区之间的防火墙耐火极限不应低于多少小时？", answer: "不应低于 3.00h。" },
-        { id: 2, title: "《民用建筑设计统一标准》 GB 50352", content: "严寒和寒冷地区公共建筑的体形系数应如何控制以满足节能要求？", answer: "应严格控制体形系数，一般不宜大于 0.30。" },
-        { id: 3, title: "《建筑与市政工程无障碍通用规范》 GB 55019", content: "轮椅坡道的最大坡度不应大于多少？", answer: "不应大于 1:12。" },
-        { id: 4, title: "《建筑防火通用规范》 GB 55037", content: "一二级耐火等级民用建筑防火分区最大允许建筑面积一般是多少？", answer: "不应大于 2500 平方米。" },
-        { id: 5, title: "《建筑设计防火规范》 GB 50016", content: "高层建筑应设环形消防车道，当设环形车道有困难时，可沿长边设什么？", answer: "可沿长边设消防车救援场地或消防车道。" }
+        { id: 1, category: "防火与疏散", title: "《建筑设计防火规范》 GB 50016", content: "高层民用建筑内防火分区之间的防火墙耐火极限不应低于多少小时？", answer: "不应低于 3.00h。设计时应直接选用实体防火墙，且必须直接设置在建筑基底或钢筋混凝土框架、承重墙上。" },
+        { id: 2, category: "通用与尺寸", title: "《民用建筑设计统一标准》 GB 50352", content: "严寒和寒冷地区公共建筑的体形系数应如何控制以满足节能要求？", answer: "应严格控制体形系数，一般不宜大于 0.30。体形系数过大会导致外表面积增加，建筑能耗上升。" },
+        { id: 3, category: "无障碍专项", title: "《建筑与市政工程无障碍通用规范》 GB 55019", content: "轮椅坡道的最大坡度不应大于多少？困难地段最大不应大于多少？", answer: "常规最大坡度不应大于 1:12；受场地条件限制的困难地段，最大坡度不应大于 1:8。" },
+        { id: 4, category: "防火与疏散", title: "《建筑防火通用规范》 GB 55037", content: "一二级耐火等级民用建筑防火分区最大允许建筑面积一般是多少？", answer: "常规建筑不应大于 2500 平方米。当设置自动灭火系统时，可按规定增加 1.0 倍。" },
+        { id: 5, category: "防火与疏散", title: "《建筑设计防火规范》 GB 50016", content: "高层建筑应设环形消防车道，当设环形车道有困难时，可沿长边设什么？", answer: "可沿长边设消防车救援场地和满足消防车通行的回车场或贯通式道路。" },
+        { id: 6, category: "通用与尺寸", title: "《民用建筑设计统一标准》 GB 50352", content: "住宅建筑按层数分类，四层至六层的住宅属于什么类型的住宅？", answer: "多层住宅。底层或首层兼具商业服务网点的住宅需满足特殊的防火与分隔构造要求。" },
+        { id: 7, category: "防火与疏散", title: "《建筑防火通用规范》 GB 55037", content: "地下或半地下建筑（室）内防火分区最大允许建筑面积是多少？", answer: "不应高い于 500 平方米；当设有自动灭火系统时，可增加到 1000 平方米。" },
+        { id: 8, category: "防火与疏散", title: "《建筑设计防火规范》 GB 50016", content: "高层民用建筑安全疏散走道净宽度不应小于多少米？", answer: "单面布房疏散走道不应小于 1.40m，双面布房疏散走道不应小于 1.50m。" },
+        { id: 9, category: "无障碍专项", title: "《建筑与市政工程无障碍通用规范》 GB 55019", content: "无障碍电梯门的净开度不应小于多少？", answer: "不应小于 0.80m，且轿厢内部尺寸应满足轮椅回转及停留的最小空间要求。" },
+        { id: 10, category: "通用与尺寸", title: "《民用建筑设计统一标准》 GB 50352", content: "公共建筑室内台阶踏步宽度不应小于多少，高度不应大于多少？", answer: "踏步宽度不应小于 0.28m，高度不应大于 0.16m，且室内台阶踏步数不应少于 2 级。" },
+        { id: 11, category: "防火与疏散", title: "《建筑设计防火规范》 GB 50016", content: "一类高层民用建筑与耐火等级为一、二级的裙房之间的防火间距不应小于多少？", answer: "不应小于 9.0m。" },
+        { id: 12, category: "防火与疏散", title: "《建筑防火通用规范》 GB 55037", content: "公共建筑内每个防火分区安全出口的数量不应少于几个？", answer: "不应少于 2 个。仅设一个安全出口需严格满足面积、最大疏散距离及容纳人数的限定条件。" },
+        { id: 13, category: "通用与尺寸", title: "《民用建筑设计统一标准》 GB 50352", content: "住宅套内楼梯的梯段净宽，当一边临空时，不应小于多少？", answer: "不应小于 0.75m；两边分户墙或侧墙时一般不应小于 1.00m。" },
+        { id: 14, category: "防火与疏散", title: "《建筑设计防火规范》 GB 50016", content: "民用建筑疏散门应向什么方向开启？", answer: "应向疏散方向开启。人员密集的公共场所、观众厅的疏散门必须向疏散方向开启。" },
+        { id: 15, category: "无障碍专项", title: "《建筑与市政工程无障碍通用规范》 GB 55019", content: "无障碍走道和通道的净宽度不应小于多少？", answer: "不应小于 1.50m，以保证两辆轮椅能够错车通过。" },
+        { id: 16, category: "通用与尺寸", title: "《民用建筑设计统一标准》 GB 50352", content: "住宅建筑套内各项功能空间，卧室、起居室（厅）的使用面积不应小于多少？", answer: "单人卧室不应小于 5.0 平方米，双人卧室不应小于 10.0 平方米，起居室（厅）不应小于 10.0 平方米。" },
+        { id: 17, category: "防火与疏散", title: "《建筑设计防火规范》 GB 50016", content: "高层民用建筑防烟楼梯间及其前室的门应采用什么类型的防火门？", answer: "应采用乙级防火门，且严禁使用平开窗形式，必须能自行关闭。" },
+        { id: 18, category: "无障碍专项", title: "《建筑与市政工程无障碍通用规范》 GB 55019", content: "无障碍机动车停车位周围应有宽度不小于多少的轮椅通行通道？", answer: "不应小于 1.20m 的轮椅通行通道或无障碍通道衔接。" },
+        { id: 19, category: "通用与尺寸", title: "《民用建筑设计统一标准》 GB 50352", content: "托儿所、幼儿园的活动室应布置在几层？", answer: "应布置在首层、二层或三层，严禁布置在地下室或半地下室中。" },
+        { id: 20, category: "防火与疏散", title: "《建筑防火通用规范》 GB 55037", content: "民用建筑内剧场、电影院、礼堂的观众厅，其安全出口数目不应少于多少个？", answer: "每个观众厅的安全出口不应少于 2 个，且每个出口的平均容纳人数不应超过特定规定。" }
     ];
 
+    // 条文大数据库（用于实时检索）
     const normsDatabase = [
-        { name: "《建筑设计防火规范》 GB 50016-2014(2018年版)", desc: "涵盖厂房、仓库、民用建筑的防火间距、防火分区、安全疏散及消防设施基本指标。" },
-        { name: "《建筑防火通用规范》 GB 55037-2022", desc: "强制性工程建设规范，规定了建筑分类、耐火等级及总体防火安全底线。" },
-        { name: "《消防设施通用规范》 GB 55036-2022", desc: "规定室内外消火栓、自动灭火、火灾自动报警及防排烟系统设置标准。" },
-        { name: "《建筑与市政工程无障碍通用规范》 GB 55019-2021", desc: "规定了无障碍通道、轮椅坡道、出入口、电梯及无障碍厕所的具体构造标准。" },
-        { name: "《民用建筑设计统一标准》 GB 50352-2019", desc: "规定民用建筑设计的基本原则、建筑高度、体形系数、日照间距及室内环境指标。" }
+        { code: "GB 50016", name: "《建筑设计防火规范》 (2018年版)", category: "防火与疏散", text: "涵盖厂房、仓库、民用建筑的防火间距、防火分区、安全疏散、消防救援设施及防排烟系统基本指标。" },
+        { code: "GB 55037", name: "《建筑防火通用规范》", category: "防火与疏散", text: "强制性工程建设规范，规定了建筑分类、耐火等级、总平面布局、平面布置及安全疏散的总体安全底线。" },
+        { code: "GB 55036", name: "《消防设施通用规范》", category: "消防工程", text: "规定室内外消火栓、自动灭火系统、火灾自动报警系统及防烟排烟系统的设置标准与设计参数。" },
+        { code: "GB 55019", name: "《建筑与市政工程无障碍通用规范》", category: "无障碍专项", text: "规定了无障碍通道、轮椅坡道、出入口、电梯、无障碍厕所及停车位的具体构造标准与强制要求。" },
+        { code: "GB 50352", name: "《民用建筑设计统一标准》", category: "通用与尺寸", text: "规定民用建筑设计的基本原则、建筑高度、体形系数、日照间距、室内空气环境及基本尺寸指标。" },
+        { code: "GB 55038", name: "《建设工程抗震通用规范》", category: "结构抗震", text: "规定建筑抗震设防类别、抗震措施、场地选择及各类结构体系抗震构造的强制性底线要求。" }
     ];
 
     let currentQuestion = null;
     let stats = JSON.parse(localStorage.getItem('zhuXiStats')) || { correct: 0, wrong: 0 };
     let wrongBook = JSON.parse(localStorage.getItem('zhuXiWrongBook')) || [];
+
+    document.getElementById('statTotal').innerText = `题库总量: ${questionBank.length} 题`;
 
     function updateStatsUI() {
         document.getElementById('statCorrect').innerText = `正确: ${stats.correct}`;
@@ -125,12 +154,20 @@
     }
 
     function loadRandomQuestion() {
-        const randomIndex = Math.floor(Math.random() * questionBank.length);
-        currentQuestion = questionBank[randomIndex];
+        const cat = document.getElementById('categorySelect').value;
+        let filtered = questionBank;
+        if (cat !== 'all') {
+            filtered = questionBank.filter(q => q.category === cat);
+        }
+        if (filtered.length === 0) filtered = questionBank;
 
+        const randomIndex = Math.floor(Math.random() * filtered.length);
+        currentQuestion = filtered[randomIndex];
+
+        document.getElementById("qBadge").innerText = currentQuestion.category;
         document.getElementById("qTitle").innerText = currentQuestion.title;
         document.getElementById("qContent").innerText = currentQuestion.content;
-        document.getElementById("qAnswerText").innerText = "解析：" + currentQuestion.answer;
+        document.getElementById("qAnswerText").innerText = "标准条文与解析：" + currentQuestion.answer;
         
         document.getElementById("qAnswerBox").style.display = "none";
         document.getElementById("actionButtons").style.display = "flex";
@@ -164,37 +201,55 @@
         const resultContainer = document.getElementById("searchResult");
         
         if (!keyword) {
-            resultContainer.innerHTML = '<p style="font-size: 13px; color: var(--text-secondary);">输入关键词检索中国国家最新规范标准...</p>';
+            resultContainer.innerHTML = '<p style="font-size: 13px; color: var(--text-secondary);">输入关键词实时检索最新规范条文与核心指标...</p>';
             return;
         }
 
-        const filtered = normsDatabase.filter(item => item.name.toLowerCase().includes(keyword) || item.desc.toLowerCase().includes(keyword));
+        // 同时在题库和规范大数据库中检索
+        const matchedQuestions = questionBank.filter(item => item.title.toLowerCase().includes(keyword) || item.content.toLowerCase().includes(keyword) || item.answer.toLowerCase().includes(keyword));
+        const matchedNorms = normsDatabase.filter(item => item.code.toLowerCase().includes(keyword) || item.name.toLowerCase().includes(keyword) || item.text.toLowerCase().includes(keyword));
         
-        if (filtered.length === 0) {
-            resultContainer.innerHTML = '<p style="font-size: 13px; color: var(--text-secondary);">未找到相关规范，请尝试更换关键词。</p>';
+        if (matchedQuestions.length === 0 && matchedNorms.length === 0) {
+            resultContainer.innerHTML = '<p style="font-size: 13px; color: var(--text-secondary);">未找到相关规范条文，请尝试更换关键词（如：防火、疏散、坡道）。</p>';
             return;
         }
 
         let html = '';
-        filtered.forEach(item => {
-            html += `<div class="list-item"><strong style="font-size:13px; color:var(--accent);">${item.name}</strong><p style="margin-top:4px; color:var(--text-main);">${item.desc}</p></div>`;
-        });
+        if (matchedNorms.length > 0) {
+            html += `<p style="font-size: 12px; font-weight:600; color:var(--accent); margin-bottom:6px;">── 匹配的规范标准 ──</p>`;
+            matchedNorms.forEach(item => {
+                html += `<div class="list-item"><strong style="font-size:13px; color:var(--text-main);">${item.code} ${item.name}</strong><p style="margin-top:4px; color:var(--text-secondary);">${item.text}</p></div>`;
+            });
+        }
+
+        if (matchedQuestions.length > 0) {
+            html += `<p style="font-size: 12px; font-weight:600; color:var(--accent); margin:12px 0 6px 0;">── 匹配的考点与条文问答 ──</p>`;
+            matchedQuestions.forEach(item => {
+                html += `<div class="list-item">
+                    <span class="badge">${item.category}</span>
+                    <strong style="font-size:13px; display:block; color:var(--accent); margin:2px 0;">${item.title}</strong>
+                    <p style="color:var(--text-main); margin-bottom:4px;">Q: ${item.content}</p>
+                    <p style="color:var(--success); font-size:12px;">解析: ${item.answer}</p>
+                </div>`;
+            });
+        }
         resultContainer.innerHTML = html;
     }
 
     function renderWrongList() {
         const container = document.getElementById("wrongListContainer");
         if (wrongBook.length === 0) {
-            container.innerHTML = '<p style="font-size: 13px; color: var(--text-secondary);">暂无错题记录，保持得很好！</p>';
+            container.innerHTML = '<p style="font-size: 13px; color: var(--text-secondary);">暂无错题记录，规范掌握情况良好！</p>';
             return;
         }
 
         let html = '';
         wrongBook.forEach((item, index) => {
             html += `<div class="list-item">
-                <p style="font-weight:600; font-size:13px;">${index + 1}. ${item.title}</p>
+                <span class="badge">${item.category}</span>
+                <p style="font-weight:600; font-size:13px; margin-top:2px;">${index + 1}. ${item.title}</p>
                 <p style="font-size:12px; color:var(--text-secondary); margin:2px 0;">${item.content}</p>
-                <p style="font-size:12px; color:var(--success);">参考答案：${item.answer}</p>
+                <p style="font-size:12px; color:var(--success);">标准答案：${item.answer}</p>
             </div>`;
         });
         container.innerHTML = html;
